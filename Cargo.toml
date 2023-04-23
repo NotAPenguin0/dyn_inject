@@ -2,5 +2,8 @@
 name = "dyn_inject"
 version = "0.1.0"
 edition = "2021"
+license = "Apache-2.0"
+description = "Rust dependency injection that works with trait objects."
+repository = "https://github.com/NotAPenguin0/dyn_inject"
 
 [dependencies]
