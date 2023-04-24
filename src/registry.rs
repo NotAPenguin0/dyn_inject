@@ -3,7 +3,7 @@ use std::any::Any;
 use std::any::TypeId;
 use std::marker::Unsize;
 use std::boxed::ThinBox;
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 
 /// A registry is a container for type-erased structs. It can store
 /// any struct, or any `dyn Trait` object, which can then be queried again by calling
@@ -49,12 +49,23 @@ impl Registry {
         any.map(|value| value.downcast_ref::<T>().unwrap())
     }
 
+    /// Get a mutable reference to the registered object for `T`, or `None` if it didn't exist.
+    pub fn get_mut<T: 'static>(&mut self) -> Option<&mut T> {
+        let any = self.items.get_mut(&TypeId::of::<T>());
+        any.map(|value| value.downcast_mut::<T>().unwrap())
+    }
+
     /// Get the registered implementation for `dyn MyTrait`, or `None` if it didn't exist.
     pub fn get_dyn<T: ?Sized + 'static>(&self) -> Option<&T> {
         let any = self.dyn_items.get(&TypeId::of::<T>());
         any.map(|any| unsafe { std::mem::transmute::<_, &ThinBox<T>>(any) }.deref() )
     }
-    
+
+    /// Get a mutable reference to the registered implementation for `dyn MyTrait`, or `None` if it didn't exist.
+    pub fn get_dyn_mut<T: ?Sized + 'static>(&mut self) -> Option<&mut T> {
+        let any = self.dyn_items.get(&TypeId::of::<T>());
+        any.map(|any| unsafe { std::mem::transmute::<_, &mut ThinBox<T>>(any) }.deref_mut() )
+    }
 }
 
 #[cfg(test)] 
