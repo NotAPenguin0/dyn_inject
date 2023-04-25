@@ -8,6 +8,7 @@ use std::ops::{Deref, DerefMut};
 /// A registry is a container for type-erased structs. It can store
 /// any struct, or any `dyn Trait` object, which can then be queried again by calling
 /// `get::<T>()` for a regular struct or `get_dyn::<dyn Trait>()` for trait objects.
+#[derive(Debug)]
 pub struct Registry {
     dyn_items: HashMap<TypeId, ThinBox<dyn Any>>,
     items: HashMap<TypeId, Box<dyn Any>>,
@@ -63,7 +64,7 @@ impl Registry {
 
     /// Get a mutable reference to the registered implementation for `dyn MyTrait`, or `None` if it didn't exist.
     pub fn get_dyn_mut<T: ?Sized + 'static>(&mut self) -> Option<&mut T> {
-        let any = self.dyn_items.get(&TypeId::of::<T>());
+        let any = self.dyn_items.get_mut(&TypeId::of::<T>());
         any.map(|any| unsafe { std::mem::transmute::<_, &mut ThinBox<T>>(any) }.deref_mut() )
     }
 }
