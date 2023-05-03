@@ -4,6 +4,7 @@ use std::any::TypeId;
 use std::marker::Unsize;
 use std::boxed::ThinBox;
 use std::ops::{Deref, DerefMut};
+use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 /// A registry is a container for type-erased structs. It can store
 /// any struct, or any `dyn Trait` object, which can then be queried again by calling
@@ -37,6 +38,11 @@ impl Registry {
         self.items.insert(TypeId::of::<T>(), Box::new(item));
     }
 
+    /// Put a static type T into the registry, with an additional lock around it.
+    pub fn put_sync<T: 'static>(&mut self, item: T) {
+        self.put(RwLock::new(item));
+    }
+
     /// Put a trait object into the registry. If called with `dyn MyTrait`, this takes in
     /// any `Foo: MyTrait`, which is then moved into the registry and can be queried back with
     /// [`Self::get_dyn::<dyn MyTrait>()`]
@@ -48,6 +54,16 @@ impl Registry {
     pub fn get<T: 'static>(&self) -> Option<&T> {
         let any = self.items.get(&TypeId::of::<T>());
         any.map(|value| value.downcast_ref::<T>().unwrap())
+    }
+
+    /// Acquire a reader lock to a synchronized object stored in the registry
+    pub fn read_sync<T: 'static>(&self) -> Option<RwLockReadGuard<T>> {
+        self.get::<RwLock<T>>().map(|lock| lock.read().unwrap())
+    }
+
+    /// Acquire a writer lock to a synchronized object stored in the registry
+    pub fn write_sync<T: 'static>(&self) -> Option<RwLockWriteGuard<T>> {
+        self.get::<RwLock<T>>().map(|lock| lock.write().unwrap())
     }
 
     /// Get a mutable reference to the registered object for `T`, or `None` if it didn't exist.
