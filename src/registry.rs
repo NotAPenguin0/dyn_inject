@@ -9,7 +9,7 @@ use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 /// A registry is a container for type-erased structs. It can store
 /// any struct, or any `dyn Trait` object, which can then be queried again by calling
 /// `get::<T>()` for a regular struct or `get_dyn::<dyn Trait>()` for trait objects.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Registry {
     dyn_items: HashMap<TypeId, ThinBox<dyn Any>>,
     items: HashMap<TypeId, Box<dyn Any>>,
