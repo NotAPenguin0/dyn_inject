@@ -10,12 +10,12 @@ use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 /// any struct, or any `dyn Trait` object, which can then be queried again by calling
 /// `get::<T>()` for a regular struct or `get_dyn::<dyn Trait>()` for trait objects.
 #[derive(Debug, Default)]
-pub struct Registry {
+pub struct ErasedStorage {
     dyn_items: HashMap<TypeId, ThinBox<dyn Any>>,
     items: HashMap<TypeId, Box<dyn Any>>,
 }
 
-impl Registry {
+impl ErasedStorage {
     /// Create a new registry
     pub fn new() -> Self {
         Self {
@@ -23,9 +23,9 @@ impl Registry {
             items: HashMap::default(),
         }
     }
-    
+
     fn put_dyn_boxed<T: ?Sized + 'static>(&mut self, item: ThinBox<T>) {
-        // SAFETY: ThinBox always has the same size regardless of the type inside, 
+        // SAFETY: ThinBox always has the same size regardless of the type inside,
         // so we can transmute this to a different pointer until we cast it back to
         // T in get()
         let any = unsafe { std::mem::transmute::<_, ThinBox<dyn Any>>(item) };
@@ -85,9 +85,9 @@ impl Registry {
     }
 }
 
-#[cfg(test)] 
+#[cfg(test)]
 mod tests {
-    use crate::Registry;
+    use crate::ErasedStorage;
     struct Foo;
 
     trait MyTrait {
@@ -102,14 +102,14 @@ mod tests {
 
     #[test]
     fn put_static() {
-        let mut registry = Registry::new();
+        let mut registry = ErasedStorage::new();
         registry.put(Foo);
         assert!(registry.get::<Foo>().is_some());
     }
 
     #[test]
     fn put_dyn() {
-        let mut registry = Registry::new();
+        let mut registry = ErasedStorage::new();
         registry.put_dyn::<dyn MyTrait>(Foo);
         assert!(registry.get_dyn::<dyn MyTrait>().is_some());
     }

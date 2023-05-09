@@ -1,24 +1,24 @@
-//! This crates provides utilities for dependency injection in Rust, 
+//! This crates provides utilities for dependency injection in Rust,
 //! also supporting `dyn Trait` trait objects instead of only static, sized types.
-//! 
+//!
 //! # Example
 //! ```
-//! use dyn_inject::Registry;
-//! 
+//! use dyn_inject::ErasedStorage;
+//!
 //! trait Foo {
 //!     fn foo();
 //! }
-//! 
+//!
 //! struct Bar;
-//! 
+//!
 //! impl Foo for Bar {
 //!     fn foo() {
 //!         println!("Hello");
 //!     }
 //! }
-//! 
+//!
 //! fn main() {
-//!     let mut registry = Registry::new();
+//!     let mut registry = ErasedStorage::new();
 //!     registry.put_dyn::<dyn Foo>(Bar);
 //!     // Calls Bar::foo()
 //!     registry.get_dyn::<dyn Foo>().unwrap().foo();
@@ -30,4 +30,4 @@
 
 pub mod registry;
 
-pub use registry::Registry;
+pub use registry::ErasedStorage;
